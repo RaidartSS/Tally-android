@@ -132,6 +132,56 @@ document.addEventListener("click", ev => {
     case "asset-del":
       deleteAsset();
       break;
+    case "sub-new":
+      subForm();
+      break;
+    case "sub-open":
+      subDetails(v);
+      break;
+    case "sub-edit":
+      subForm(v);
+      break;
+    case "sub-save":
+      saveSub();
+      break;
+    case "sub-del":
+      deleteSub();
+      break;
+    case "sub-pay":
+      paySub(v);
+      break;
+    case "sub-cat":
+      F.cat = v;
+      [...document.querySelectorAll('[data-act="sub-cat"]')].forEach(b => b.classList.toggle("on", b.dataset.v === v));
+      break;
+    case "sub-set-period":
+      F.period = v;
+      [...document.querySelectorAll('[data-act="sub-set-period"]')].forEach(b =>
+        b.classList.toggle("on", b.dataset.v === v)
+      );
+      break;
+    case "pick-subcur":
+      curPicker(F.cur, c => {
+        if (F && F.kind === "subf") {
+          F.cur = c;
+          const b = $("#f-subcur span");
+          if (b) b.textContent = c;
+        }
+      });
+      break;
+    case "sub-toggle-pause":
+      {
+        const s = (S.subs || []).find(x => x.id === v);
+        if (s) {
+          s.paused = !s.paused;
+          commit();
+          closeSheet();
+          subDetails(v);
+          render();
+          snack(s.paused ? "Suscripción pausada" : "Suscripción reactivada");
+        }
+      }
+      break;
     case "rem-daily":
       toggleReminder("daily");
       break;
@@ -876,6 +926,7 @@ document.addEventListener("keydown", e => {
       loanf: "loan-save",
       loan: "loan-pay",
       assetf: "asset-save",
+      subf: "sub-save",
     };
     const act = two ? (F.kind === "loan" ? "loandraw-save" : "") : map[F.kind],
       b = act && $((two ? "#sheet2" : "#sheet") + ' [data-act="' + act + '"]');

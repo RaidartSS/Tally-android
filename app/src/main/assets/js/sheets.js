@@ -92,6 +92,291 @@ function deleteAsset() {
     S.assets = S.assets.filter(x => x.id !== id);
   });
 }
+function subDetails(id) {
+  const s = (S.subs || []).find(x => x.id === id);
+  if (!s) return;
+  const a = acc(s.account);
+  const cur = a ? a.currency : s.currency || S.settings.cur;
+  const pMap = { week: "Semanal", month: "Mensual", year: "Anual" };
+  const history = (S.txns || [])
+    .filter(
+      t => (t.subId === s.id || (t.payee && t.payee.toLowerCase() === s.name.toLowerCase())) && t.type === "expense"
+    )
+    .sort(byNewest);
+
+  let h = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">';
+  h += emblem({ i: s.i || "calendar_month", e: s.e || "", c: s.c || "#4a88c7" }, "ci");
+  h +=
+    '<div><div style="font-size:1.2rem;font-weight:700">' +
+    esc(s.name) +
+    "</div>" +
+    '<div style="font-size:0.85rem;color:var(--on-surface-variant)">' +
+    esc(pMap[s.period] || "Mensual") +
+    " · " +
+    (a ? esc(a.name) : "Sin cuenta") +
+    "</div></div></div>";
+
+  h += '<div class="sumcard soft" style="margin-bottom:16px">';
+  h += '<div class="t">Monto recurrente actual</div>';
+  h += '<div class="big">' + esc(money(s.amount, cur)) + "</div>";
+  h +=
+    '<div style="font-size:0.85rem;margin-top:6px">Próximo vencimiento: <b>' +
+    esc(s.nextDue) +
+    "</b>" +
+    (s.nextDue <= today() ? ' <span style="color:var(--error);font-weight:700">· ¡Vence hoy / Pendiente!</span>' : "") +
+    "</div></div>";
+
+  h +=
+    '<button class="btn" data-act="sub-pay" data-v="' +
+    s.id +
+    '" style="margin-bottom:8px">' +
+    ic("check") +
+    "Registrar pago de " +
+    esc(money(s.amount, cur)) +
+    "</button>";
+
+  h += '<div style="display:flex;gap:8px;margin-bottom:16px">';
+  h +=
+    '<button class="btn tonal" data-act="sub-edit" data-v="' +
+    s.id +
+    '" style="flex:1">' +
+    ic("edit") +
+    "Editar</button>";
+  h +=
+    '<button class="btn tonal" data-act="sub-toggle-pause" data-v="' +
+    s.id +
+    '" style="flex:1">' +
+    (s.paused ? ic("refresh") + "Reactivar" : ic("close") + "Pausar") +
+    "</button>";
+  h += "</div>";
+
+  h += '<div class="sec" style="margin-top:16px">Historial de pagos registrados</div>';
+  if (!history.length) {
+    h += '<p class="hint" style="margin:4px 0">Aún no se han registrado pagos para esta suscripción.</p>';
+  } else {
+    h +=
+      '<p class="hint" style="margin:2px 0 8px;font-size:0.8rem">Cada pago conserva el valor exacto con el que fue registrado en su fecha histórica.</p>';
+    h +=
+      "<div>" +
+      history
+        .slice(0, 10)
+        .map(t => {
+          const tAcc = acc(t.account);
+          const tCur = tAcc ? tAcc.currency : cur;
+          return (
+            '<div class="tx" style="padding:10px 0;border-bottom:1px solid var(--outline-variant)">' +
+            '<span class="mid"><div class="d">' +
+            esc(dayLabel(t.date)) +
+            "</div>" +
+            '<div class="s">' +
+            (t.note ? esc(t.note) + " · " : "") +
+            (tAcc ? esc(tAcc.name) : "") +
+            "</div></span>" +
+            '<span class="a" style="font-weight:600">' +
+            esc(money(t.amount, tCur)) +
+            "</span>" +
+            "</div>"
+          );
+        })
+        .join("") +
+      "</div>";
+  }
+
+  openSheet(esc(s.name), h);
+}
+function paySub(id) {
+  const s = (S.subs || []).find(x => x.id === id);
+  if (!s) return;
+  const date = today();
+  const a = acc(s.account);
+  const cur = a ? a.currency : s.currency || S.settings.cur;
+  const t = {
+    id: newId(),
+    ts: Date.now(),
+    date,
+    type: "expense",
+    amount: s.amount,
+    account: s.account || (S.accounts[0] ? S.accounts[0].id : ""),
+    cat: s.cat || "bills",
+    payee: s.name,
+    note: s.note ? s.note : "",
+    subId: s.id,
+  };
+
+  withUndo("Pago registrado: " + s.name + " (" + money(s.amount, cur) + ")", () => {
+    S.txns.push(t);
+    s.nextDue = nextPeriodDate(s.nextDue || date, s.period || "month");
+  });
+  closeSheet();
+  commit();
+  render();
+}
+function subForm(id) {
+  if (!id && !S.settings.cur) return pickMainCur(() => subForm());
+  const s = id ? (S.subs || []).find(x => x.id === id) : null;
+  const defAcc = S.accounts[0] ? S.accounts[0].id : "";
+  const defCur = S.settings.cur || (S.accounts[0] ? S.accounts[0].currency : "USD");
+
+  F = {
+    kind: "subf",
+    id: id || null,
+    name: s ? s.name : "",
+    amount: s ? s.amount : "",
+    cur: s ? s.currency : defCur,
+    account: s ? s.account : defAcc,
+    cat: s ? s.cat : outCats()[0] ? outCats()[0].id : "bills",
+    period: s ? s.period : "month",
+    nextDue: s ? s.nextDue : today(),
+    note: s ? s.note : "",
+    i: s ? s.i || "calendar_month" : "calendar_month",
+    e: s ? s.e || "" : "",
+    col: s ? s.c || "#4a88c7" : "#4a88c7",
+    paused: s ? s.paused : false,
+  };
+
+  let h = emblemEditor({ i: F.i, e: F.e, c: F.col });
+
+  h +=
+    '<label class="field"><span>Nombre del servicio o factura</span>' +
+    '<input id="f-subname" value="' +
+    esc(F.name) +
+    '" maxlength="40" placeholder="ej. Netflix, Luz, Internet">' +
+    "</label>";
+
+  h +=
+    '<div class="row">' +
+    '<label class="field" style="flex:2"><span>Valor recurrente</span>' +
+    '<input id="f-subamt" inputmode="decimal" autocomplete="off" value="' +
+    esc(F.amount != null ? F.amount : "") +
+    '" placeholder="0.00"></label>' +
+    '<div class="field" style="flex:1"><span>Moneda</span>' +
+    '<button class="fieldbtn" id="f-subcur" data-act="pick-subcur"><span>' +
+    esc(F.cur) +
+    "</span>" +
+    ic("down") +
+    "</button></div></div>";
+
+  h +=
+    '<div class="field"><span>Frecuencia de cobro</span>' +
+    '<div class="chips" style="margin-top:4px">' +
+    [
+      ["month", "Mensual"],
+      ["year", "Anual"],
+      ["week", "Semanal"],
+    ]
+      .map(
+        ([p, label]) =>
+          '<button class="chip' +
+          (F.period === p ? " on" : "") +
+          '" data-act="sub-set-period" data-v="' +
+          p +
+          '">' +
+          label +
+          "</button>"
+      )
+      .join("") +
+    "</div></div>";
+
+  h +=
+    '<div class="field"><span>Próxima fecha de cobro</span>' +
+    dateField("f-subdate", F.nextDue, { label: "Próxima fecha de cobro" }) +
+    "</div>";
+
+  h += '<div class="lbl">Cuenta de cobro habitual</div>' + accChips("f-acc", F.account, null, accChoices(F.account));
+
+  h +=
+    '<div class="lbl">Categoría del gasto</div>' +
+    '<div class="chips" style="margin-top:4px;flex-wrap:wrap;max-height:160px;overflow-y:auto">' +
+    outCats()
+      .map(
+        c =>
+          '<button class="chip' +
+          (c.id === F.cat ? " on" : "") +
+          '" data-act="sub-cat" data-v="' +
+          esc(c.id) +
+          '">' +
+          emblem(c, "sm") +
+          "<span>" +
+          esc(catName(c)) +
+          "</span></button>"
+      )
+      .join("") +
+    "</div>";
+
+  h +=
+    '<label class="field" style="margin-top:12px"><span>Nota opcional</span>' +
+    '<input id="f-subnote" value="' +
+    esc(F.note) +
+    '" maxlength="50" placeholder="ej. Plan familiar, referencia #"></label>';
+
+  h +=
+    '<div style="background:var(--secondary-container);color:var(--on-secondary-container);padding:10px 14px;border-radius:12px;font-size:0.8rem;margin:16px 0">' +
+    "🛡️ <b>Protección histórica:</b> Si modificas el valor aquí, solo se aplicará a los próximos cobros. Los pagos registrados anteriormente en tu historial conservarán su valor original." +
+    "</div>";
+
+  h +=
+    '<div class="gap"></div><button class="btn" data-act="sub-save">' +
+    (id ? "Guardar cambios" : "Crear suscripción") +
+    "</button>";
+
+  if (id) {
+    h += '<div class="gap"></div><button class="btn danger" data-act="sub-del">' + "Eliminar suscripción" + "</button>";
+  }
+
+  openSheet(id ? "Editar suscripción" : "Nueva suscripción", h);
+}
+function saveSub() {
+  const name = ($("#f-subname") ? $("#f-subname").value.trim() : "") || F.name;
+  const rawAmt = $("#f-subamt") ? $("#f-subamt").value.trim() : "";
+  const amt = rawAmt ? evalAmt(rawAmt) : 0;
+  const nextDue = ($("#f-subdate") ? $("#f-subdate").dataset.v : "") || F.nextDue || today();
+  const note = $("#f-subnote") ? $("#f-subnote").value.trim() : "";
+
+  if (!name) {
+    snack(T("common.nameIt"));
+    return;
+  }
+  if (amt == null || amt < 0) {
+    snack("Escribe un monto válido");
+    return;
+  }
+
+  const data = {
+    name,
+    amount: rnd(amt),
+    currency: F.cur,
+    account: F.account,
+    cat: F.cat,
+    period: F.period || "month",
+    nextDue,
+    note,
+    i: F.i,
+    e: F.e,
+    c: F.col,
+    paused: F.paused || false,
+  };
+
+  S.subs = S.subs || [];
+  if (F.id) {
+    const existing = S.subs.find(x => x.id === F.id);
+    if (existing) Object.assign(existing, data);
+  } else {
+    S.subs.push(Object.assign({ id: newId() }, data));
+  }
+
+  closeSheet();
+  commit();
+  render();
+  snack(F.id ? "Suscripción actualizada" : "Suscripción creada");
+}
+function deleteSub() {
+  const subId = F.id;
+  closeSheet();
+  withUndo("Suscripción eliminada (pagos anteriores conservados)", () => {
+    S.subs = (S.subs || []).filter(x => x.id !== subId);
+  });
+  render();
+}
 /* account chips; the picked one is tinted in its account's colour (.acchip); addAct: a dashed "Add account" chip at the end */
 const accChips = (act, sel, disabled, list, addAct) =>
   '<div class="chips">' +

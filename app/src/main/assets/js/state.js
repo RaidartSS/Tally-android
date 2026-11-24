@@ -40,6 +40,7 @@ function blank() {
     txns: [],
     loans: [],
     assets: [],
+    subs: [],
   };
 }
 /* a note Tally wrote itself on a balance fix or a fee (1.4.1 and earlier wrote "Balance fix", "Transfer fee", "Payment
@@ -378,6 +379,24 @@ function migrate(o) {
       currency: curOf(x.currency),
     }));
   uniq(s.assets);
+  s.subs = (Array.isArray(o.subs) ? o.subs : [])
+    .filter(x => x && x.id)
+    .map(x => ({
+      id: sid(x.id),
+      name: str(x.name) || "Suscripción",
+      amount: num(x.amount),
+      currency: curOf(x.currency),
+      account: sid(x.account) || (s.accounts[0] ? s.accounts[0].id : ""),
+      cat: sid(x.cat) || "bills",
+      period: ["week", "month", "year"].includes(x.period) ? x.period : "month",
+      nextDue: isDay(x.nextDue) ? day(x.nextDue) : today(),
+      paused: !!x.paused,
+      note: str(x.note),
+      i: own(ICONS, x.i) ? x.i : "calendar_month",
+      e: str(x.e),
+      c: hex(x.c) ? x.c : "#4a88c7",
+    }));
+  uniq(s.subs);
   return s;
 }
 let S = blank();
@@ -662,6 +681,26 @@ const balanceIn = (cur, b) =>
 const outCats = () => S.cats.filter(c => c.kind === "out" && !c.hidden);
 /* Home screen displays all used categories in the period, and fills with unused ones up to HOME_RING_MIN_CATS */
 const HOME_RING_MIN_CATS = 5;
+function nextPeriodDate(dateStr, period) {
+  const [y, m, d] = (dateStr || today()).split("-").map(Number);
+  if (period === "week") {
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() + 7);
+    return dt.getFullYear() + "-" + pad(dt.getMonth() + 1) + "-" + pad(dt.getDate());
+  }
+  if (period === "year") {
+    return y + 1 + "-" + pad(m) + "-" + pad(d);
+  }
+  let nextM = m + 1;
+  let nextY = y;
+  if (nextM > 12) {
+    nextM = 1;
+    nextY++;
+  }
+  const maxDays = new Date(nextY, nextM, 0).getDate();
+  const nextD = Math.min(d, maxDays);
+  return nextY + "-" + pad(nextM) + "-" + pad(nextD);
+}
 const homeCats = by => {
   const all = outCats();
   const used = all.filter(c => (by && by[c.id]) > 0);
@@ -794,7 +833,13 @@ const mainFirst = (a, b) => (a === S.settings.cur ? -1 : b === S.settings.cur ? 
 function withUndo(msg, change, fx, after) {
   applyNativeActions(); // a +1 day tapped meanwhile goes in first, so this Undo can't take it back
   const copy = list => list.map(x => ({ ...x })), // flat objects: a deep copy
-    before = { txns: copy(S.txns), loans: copy(S.loans), accounts: copy(S.accounts), assets: copy(S.assets) },
+    before = {
+      txns: copy(S.txns),
+      loans: copy(S.loans),
+      accounts: copy(S.accounts),
+      assets: copy(S.assets),
+      subs: copy(S.subs || []),
+    },
     row = fx && fx.row,
     drawn = () => !!$("#app").querySelector('.tx.en[data-v="' + CSS.escape(row) + '"]'),
     hist = V.screen === "history",
