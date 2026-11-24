@@ -23,13 +23,13 @@ const panes = (left, right, cls) =>
   !twoPane()
     ? left + right
     : '<div class="panes' +
-      (right ? "" : " one") +
-      (cls ? " " + cls : "") +
-      '"><div class="pane">' +
-      left +
-      "</div>" +
-      (right ? '<div class="pane">' + right + "</div>" : "") +
-      "</div>";
+    (right ? "" : " one") +
+    (cls ? " " + cls : "") +
+    '"><div class="pane">' +
+    left +
+    "</div>" +
+    (right ? '<div class="pane">' + right + "</div>" : "") +
+    "</div>";
 /* the ring's width: its pane on a wide screen (measured on an empty pane pair), else the column */
 let RINGW = 0;
 /* the screen, drawn anew; the control that had the focus gets it back (keepFocus), and the same screen keeps the row
@@ -184,25 +184,25 @@ function drawScreen() {
     });
   $("#nav").innerHTML = tabs
     ? '<div class="in">' +
-      [
-        ["home", "home"],
-        ["assets", "wallet"],
-        ["liabs", "card"],
-      ]
-        .map(
-          ([k, i]) =>
-            '<button data-act="tab" data-v="' +
-            k +
-            '"' +
-            (V.screen === k ? ' aria-current="page"' : "") +
-            '><span class="ind">' +
-            (FLIP === k ? ic(i).replace('class="ic"', 'class="ic flip"') : ic(i)) +
-            "</span>" +
-            TH("nav." + k) +
-            "</button>"
-        )
-        .join("") +
-      "</div>"
+    [
+      ["home", "home"],
+      ["assets", "wallet"],
+      ["liabs", "card"],
+    ]
+      .map(
+        ([k, i]) =>
+          '<button data-act="tab" data-v="' +
+          k +
+          '"' +
+          (V.screen === k ? ' aria-current="page"' : "") +
+          '><span class="ind">' +
+          (FLIP === k ? ic(i).replace('class="ic"', 'class="ic flip"') : ic(i)) +
+          "</span>" +
+          TH("nav." + k) +
+          "</button>"
+      )
+      .join("") +
+    "</div>"
     : "";
   FLIP = null;
 }
@@ -343,7 +343,7 @@ function homeView() {
   });
   spent = rnd(spent);
   const got = gotIn(cur, ps, pe);
-  const ring = ringHTML(outCats(), { mode: "home", by, spent, got, cur });
+  const ring = ringHTML(homeCats(by), { mode: "home", by, spent, got, cur });
 
   const n = histRows(periodTxns()).length; // a fee is part of its entry
   if (!atHomePeriod()) {
@@ -592,9 +592,9 @@ function fitWrapped(root, sel) {
 const curLines = m =>
   Object.keys(m).length
     ? Object.entries(m)
-        .sort((a, b) => mainFirst(a[0], b[0]))
-        .map(([c, v]) => '<div class="big">' + esc(money(v, c)) + "</div>")
-        .join("")
+      .sort((a, b) => mainFirst(a[0], b[0]))
+      .map(([c, v]) => '<div class="big">' + esc(money(v, c)) + "</div>")
+      .join("")
     : '<div class="big">' + esc(money(0, S.settings.cur)) + "</div>";
 function netWorth() {
   const b = balances();
@@ -668,23 +668,23 @@ function assetsView() {
     "</div>" +
     (S.assets.length
       ? '<div class="list" data-src="assets">' +
-        S.assets
-          .map(
-            x =>
-              '<button class="tx stk" data-act="asset-edit" data-v="' +
-              x.id +
-              '" data-drag="asset:' +
-              x.id +
-              '">' +
-              emblem(x, "em") +
-              '<span class="mid"><div class="d" dir="auto">' +
-              esc(x.name) +
-              '</div></span><span class="a">' +
-              esc(money(x.value, x.currency)) +
-              "</span></button>"
-          )
-          .join("") +
-        "</div>"
+      S.assets
+        .map(
+          x =>
+            '<button class="tx stk" data-act="asset-edit" data-v="' +
+            x.id +
+            '" data-drag="asset:' +
+            x.id +
+            '">' +
+            emblem(x, "em") +
+            '<span class="mid"><div class="d" dir="auto">' +
+            esc(x.name) +
+            '</div></span><span class="a">' +
+            esc(money(x.value, x.currency)) +
+            "</span></button>"
+        )
+        .join("") +
+      "</div>"
       : '<p class="hint" style="margin:0 4px">' + TH("assets.otherHint") + "</p>") +
     '<button class="btn text" data-act="asset-edit" style="margin-top:4px">' +
     ic("add") +
@@ -960,10 +960,10 @@ function txOpenView(t) {
   const bal = (x, v) =>
     x && v != null
       ? box(
-          TH("tx.leftAfter"),
-          M(v, x.currency),
-          '<div class="bin">' + TH("tx.inAcc", { account: { html: accTag(x) } }) + "</div>"
-        )
+        TH("tx.leftAfter"),
+        M(v, x.currency),
+        '<div class="bin">' + TH("tx.inAcc", { account: { html: accTag(x) } }) + "</div>"
+      )
       : "";
   const row = boxes => (boxes ? '<div class="frow">' + boxes + "</div>" : "");
   let h = "";
@@ -976,9 +976,9 @@ function txOpenView(t) {
       "<span>" +
       (iso(w) !== t.date
         ? TH("tx.addedOn", {
-            date: { html: "<b>" + esc(w.toLocaleDateString(DATE_LOC, { day: "numeric", month: "short" })) + "</b>" },
-            time: { html: time },
-          })
+          date: { html: "<b>" + esc(w.toLocaleDateString(DATE_LOC, { day: "numeric", month: "short" })) + "</b>" },
+          time: { html: time },
+        })
         : TH("tx.addedAt", { time: { html: time } })) +
       "</span></div>";
   }
@@ -1183,11 +1183,11 @@ function dayGroups(list, hist) {
       h +=
         (hist
           ? '<div class="day dayh" role="heading" aria-level="3" aria-label="' +
-            esc(histHeadSay(title, lines)) +
-            '"><span aria-hidden="true">' +
-            esc(title) +
-            "</span>" +
-            histColumn(lines)
+          esc(histHeadSay(title, lines)) +
+          '"><span aria-hidden="true">' +
+          esc(title) +
+          "</span>" +
+          histColumn(lines)
           : '<div class="day"><span>' + esc(title) + "</span><span>" + esc(tot) + "</span>") +
         '</div><div class="list dl" style="contain-intrinsic-size:0 ' +
         rows.get(cur) * 5 + // an estimate (a row of two or three lines), in rem: it grows with the text size
@@ -1450,16 +1450,16 @@ function settingsView() {
     autoBackupHtml() +
     (keptKeys().length
       ? '<div class="card"><h3>' +
-        TH("data.kept.title") +
-        '</h3><p class="muted small" style="margin:0">' +
-        TH("data.kept.body") +
-        "</p>" +
-        '<div class="gap"></div><div class="row"><button class="btn tonal" data-act="kept-save">' +
-        TH("common.saveFile") +
-        "</button>" +
-        '<button class="btn tonal" data-act="kept-del">' +
-        TH("data.kept.delete") +
-        '</button></div></div><div class="gap"></div>'
+      TH("data.kept.title") +
+      '</h3><p class="muted small" style="margin:0">' +
+      TH("data.kept.body") +
+      "</p>" +
+      '<div class="gap"></div><div class="row"><button class="btn tonal" data-act="kept-save">' +
+      TH("common.saveFile") +
+      "</button>" +
+      '<button class="btn tonal" data-act="kept-del">' +
+      TH("data.kept.delete") +
+      '</button></div></div><div class="gap"></div>'
       : "") +
     (autoOn
       ? ""
@@ -1467,8 +1467,8 @@ function settingsView() {
     (canRestore()
       ? '<button class="btn tonal" data-act="restore">' + TH("restore.btn") + "</button>"
       : '<label class="btn tonal" style="position:relative">' +
-        TH("restore.btn") +
-        '<input type="file" id="restore-file" accept=".json,application/json" class="vh"></label>') +
+      TH("restore.btn") +
+      '<input type="file" id="restore-file" accept=".json,application/json" class="vh"></label>') +
     '<div class="gap"></div>' +
     '<button class="btn tonal" data-act="export">' +
     TH("settings.export") +
@@ -1481,12 +1481,12 @@ function settingsView() {
   const ver =
     window.Android && Android.getVersion
       ? (() => {
-          try {
-            return Android.getVersion();
-          } catch (e) {
-            return "";
-          }
-        })()
+        try {
+          return Android.getVersion();
+        } catch (e) {
+          return "";
+        }
+      })()
       : "";
   h +=
     sec(TH("settings.about"), "center") +
@@ -1514,7 +1514,7 @@ function langRow() {
   let on = false;
   try {
     on = !!(window.Android && Android.appLanguage && Android.appLanguage());
-  } catch (e) {}
+  } catch (e) { }
   if (!on) return "";
   return (
     '<div class="lbl set">' +
@@ -1582,10 +1582,10 @@ function autoBackupHtml() {
     "</div></span>" +
     (b.on
       ? '<button class="fieldbtn tbtn" data-act="pick-time" data-v="backup"><span>' +
-        esc(timeLabel(b.time)) +
-        "</span>" +
-        ic("schedule") +
-        "</button>"
+      esc(timeLabel(b.time)) +
+      "</span>" +
+      ic("schedule") +
+      "</button>"
       : "") +
     '<button class="sw" role="switch" data-act="bk-auto" aria-checked="' +
     b.on +
@@ -1594,15 +1594,15 @@ function autoBackupHtml() {
     '"></button></div>' +
     (b.on
       ? '<div class="setrow"><span class="mid"><div>' +
-        BACKUP_FILE +
-        '</div><div class="s">' +
-        esc(bs.folder || T("backup.noFolder")) +
-        '</div></span><button class="btn text" data-act="bk-folder">' +
-        TH("common.change") +
-        "</button></div>" +
-        '<div class="setrow"><button class="btn text" data-act="bk-now">' +
-        TH("backup.now") +
-        "</button></div>"
+      BACKUP_FILE +
+      '</div><div class="s">' +
+      esc(bs.folder || T("backup.noFolder")) +
+      '</div></span><button class="btn text" data-act="bk-folder">' +
+      TH("common.change") +
+      "</button></div>" +
+      '<div class="setrow"><button class="btn text" data-act="bk-now">' +
+      TH("backup.now") +
+      "</button></div>"
       : "") +
     '</div><div class="gap"></div>'
   );

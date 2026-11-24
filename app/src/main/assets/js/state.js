@@ -660,6 +660,16 @@ const balanceIn = (cur, b) =>
       .reduce((q, a) => q + b[a.id], 0)
   );
 const outCats = () => S.cats.filter(c => c.kind === "out" && !c.hidden);
+/* Home screen displays all used categories in the period, and fills with unused ones up to HOME_RING_MIN_CATS */
+const HOME_RING_MIN_CATS = 5;
+const homeCats = by => {
+  const all = outCats();
+  const used = all.filter(c => (by && by[c.id]) > 0);
+  const needed = Math.max(0, Math.min(HOME_RING_MIN_CATS, all.length) - used.length);
+  const unused = all.filter(c => !((by && by[c.id]) > 0));
+  const picked = new Set([...used, ...unused.slice(0, needed)]);
+  return all.filter(c => picked.has(c));
+};
 /* the ring has room for 24 spending categories: true (and said) when one more of that kind wouldn't fit */
 const MAX_OUT_CATS = 24;
 function catsFull(kind) {
