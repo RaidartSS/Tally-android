@@ -751,15 +751,15 @@ function subRow(s) {
   const isToday = s.nextDue === today();
   const a = acc(s.account);
   const cur = a ? a.currency : s.currency || S.settings.cur;
-  const pMap = { week: "/ sem", month: "/ mes", year: "/ año" };
-  const pText = pMap[s.period] || "/ mes";
+  const pMap = { week: T("sub.perWeek"), month: T("sub.perMonth"), year: T("sub.perYear") };
+  const pText = pMap[s.period] || T("sub.perMonth");
   const dueInfo = s.paused
-    ? '<span style="opacity:0.6">Pausada</span>'
+    ? '<span style="opacity:0.6">' + TH("sub.paused") + "</span>"
     : isToday
-      ? '<span style="color:var(--primary);font-weight:600">Vence hoy</span>'
+      ? '<span style="color:var(--primary);font-weight:600">' + TH("sub.dueToday") + "</span>"
       : s.nextDue < today()
-        ? '<span style="color:var(--error);font-weight:600">Vencido (' + esc(s.nextDue) + ")</span>"
-        : "<span>Próx: " + esc(s.nextDue) + "</span>";
+        ? '<span style="color:var(--error);font-weight:600">' + TH("sub.overdue", { date: s.nextDue }) + "</span>"
+        : "<span>" + TH("sub.prox", { date: s.nextDue }) + "</span>";
 
   const subline = (a ? accTag(a) + " · " : "") + dueInfo;
   return (
@@ -785,9 +785,9 @@ function subRow(s) {
 }
 function subsSection() {
   const list = S.subs || [];
-  let h = '<div class="sec">Suscripciones y Facturas</div>';
+  let h = '<div class="sec">' + TH("sub.title") + "</div>";
   if (!list.length) {
-    h += '<p class="hint" style="margin:4px 0 12px">Pagos periódicos como servicios, suscripciones o alquiler.</p>';
+    h += '<p class="hint" style="margin:4px 0 12px">' + TH("sub.hint") + "</p>";
   } else {
     let monthly = 0;
     list
@@ -799,17 +799,15 @@ function subsSection() {
       });
     if (monthly > 0) {
       h +=
-        '<div style="font-size:0.85rem;color:var(--on-surface-variant);margin-bottom:8px">Compromiso mensual est.: <b>' +
-        esc(money(rnd(monthly), S.settings.cur || (list[0] && list[0].currency) || "USD")) +
-        "</b></div>";
+        '<div style="font-size:0.85rem;color:var(--on-surface-variant);margin-bottom:8px">' +
+        TH("sub.monthlyEst", {
+          amount: money(rnd(monthly), S.settings.cur || (list[0] && list[0].currency) || "USD"),
+        }) +
+        "</div>";
     }
     h += '<div style="margin-bottom:8px">' + list.map(s => subRow(s)).join("") + "</div>";
   }
-  h +=
-    '<button class="btn text" data-act="sub-new" style="margin-top:4px">' +
-    ic("add") +
-    "Nueva suscripción o factura" +
-    "</button>";
+  h += '<button class="btn text" data-act="sub-new" style="margin-top:4px">' + ic("add") + TH("sub.add") + "</button>";
   return h;
 }
 function dueSubsAlert() {
@@ -820,7 +818,7 @@ function dueSubsAlert() {
   const a = acc(s.account);
   const cur = a ? a.currency : s.currency || S.settings.cur;
   const isToday = s.nextDue === today();
-  const label = isToday ? "Vence hoy" : "Vencido";
+  const label = isToday ? T("sub.dueToday") : T("sub.overdue", { date: s.nextDue });
   return (
     '<div class="todayrow" style="margin-bottom:8px">' +
     '<div class="todaychip" style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--tertiary-container);color:var(--on-tertiary-container);border-radius:16px;font-size:0.85rem">' +
@@ -835,10 +833,14 @@ function dueSubsAlert() {
     "</span>" +
     '<button class="btn" style="padding:4px 10px;font-size:0.8rem;margin-left:auto;height:auto;min-height:28px" data-act="sub-pay" data-v="' +
     s.id +
-    '">Pagar</button>' +
+    '">' +
+    TH("sub.payAction") +
+    "</button>" +
     '<button class="btn text" style="padding:4px 8px;font-size:0.8rem;height:auto;min-height:28px" data-act="sub-open" data-v="' +
     s.id +
-    '">Ver</button>' +
+    '">' +
+    TH("sub.view") +
+    "</button>" +
     "</div></div>"
   );
 }

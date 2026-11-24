@@ -383,7 +383,7 @@ function migrate(o) {
     .filter(x => x && x.id)
     .map(x => ({
       id: sid(x.id),
-      name: str(x.name) || "Suscripción",
+      name: str(x.name) || T("sub.fallbackName"),
       amount: num(x.amount),
       currency: curOf(x.currency),
       account: sid(x.account) || (s.accounts[0] ? s.accounts[0].id : ""),

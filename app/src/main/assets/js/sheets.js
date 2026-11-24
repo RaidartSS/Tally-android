@@ -97,7 +97,7 @@ function subDetails(id) {
   if (!s) return;
   const a = acc(s.account);
   const cur = a ? a.currency : s.currency || S.settings.cur;
-  const pMap = { week: "Semanal", month: "Mensual", year: "Anual" };
+  const pMap = { week: T("sub.weekly"), month: T("sub.monthly"), year: T("sub.yearly") };
   const history = (S.txns || [])
     .filter(
       t => (t.subId === s.id || (t.payee && t.payee.toLowerCase() === s.name.toLowerCase())) && t.type === "expense"
@@ -111,19 +111,20 @@ function subDetails(id) {
     esc(s.name) +
     "</div>" +
     '<div style="font-size:0.85rem;color:var(--on-surface-variant)">' +
-    esc(pMap[s.period] || "Mensual") +
+    esc(pMap[s.period] || T("sub.monthly")) +
     " · " +
-    (a ? esc(a.name) : "Sin cuenta") +
+    (a ? esc(a.name) : TH("sub.noAccount")) +
     "</div></div></div>";
 
   h += '<div class="sumcard soft" style="margin-bottom:16px">';
-  h += '<div class="t">Monto recurrente actual</div>';
+  h += '<div class="t">' + TH("sub.currentAmount") + "</div>";
   h += '<div class="big">' + esc(money(s.amount, cur)) + "</div>";
   h +=
-    '<div style="font-size:0.85rem;margin-top:6px">Próximo vencimiento: <b>' +
-    esc(s.nextDue) +
-    "</b>" +
-    (s.nextDue <= today() ? ' <span style="color:var(--error);font-weight:700">· ¡Vence hoy / Pendiente!</span>' : "") +
+    '<div style="font-size:0.85rem;margin-top:6px">' +
+    TH("sub.nextDueLabel", { date: s.nextDue }) +
+    (s.nextDue <= today()
+      ? ' <span style="color:var(--error);font-weight:700">· ' + TH("sub.dueToday") + "!</span>"
+      : "") +
     "</div></div>";
 
   h +=
@@ -131,8 +132,7 @@ function subDetails(id) {
     s.id +
     '" style="margin-bottom:8px">' +
     ic("check") +
-    "Registrar pago de " +
-    esc(money(s.amount, cur)) +
+    TH("sub.payAmount", { amount: money(s.amount, cur) }) +
     "</button>";
 
   h += '<div style="display:flex;gap:8px;margin-bottom:16px">';
@@ -141,21 +141,21 @@ function subDetails(id) {
     s.id +
     '" style="flex:1">' +
     ic("edit") +
-    "Editar</button>";
+    TH("common.edit") +
+    "</button>";
   h +=
     '<button class="btn tonal" data-act="sub-toggle-pause" data-v="' +
     s.id +
     '" style="flex:1">' +
-    (s.paused ? ic("refresh") + "Reactivar" : ic("close") + "Pausar") +
+    (s.paused ? ic("refresh") + TH("sub.resume") : ic("close") + TH("sub.pause")) +
     "</button>";
   h += "</div>";
 
-  h += '<div class="sec" style="margin-top:16px">Historial de pagos registrados</div>';
+  h += '<div class="sec" style="margin-top:16px">' + TH("sub.history") + "</div>";
   if (!history.length) {
-    h += '<p class="hint" style="margin:4px 0">Aún no se han registrado pagos para esta suscripción.</p>';
+    h += '<p class="hint" style="margin:4px 0">' + TH("sub.historyNone") + "</p>";
   } else {
-    h +=
-      '<p class="hint" style="margin:2px 0 8px;font-size:0.8rem">Cada pago conserva el valor exacto con el que fue registrado en su fecha histórica.</p>';
+    h += '<p class="hint" style="margin:2px 0 8px;font-size:0.8rem">' + TH("sub.historyNotice") + "</p>";
     h +=
       "<div>" +
       history
@@ -203,7 +203,7 @@ function paySub(id) {
     subId: s.id,
   };
 
-  withUndo("Pago registrado: " + s.name + " (" + money(s.amount, cur) + ")", () => {
+  withUndo(T("sub.paidMsg", { name: s.name, amount: money(s.amount, cur) }), () => {
     S.txns.push(t);
     s.nextDue = nextPeriodDate(s.nextDue || date, s.period || "month");
   });
@@ -237,19 +237,27 @@ function subForm(id) {
   let h = emblemEditor({ i: F.i, e: F.e, c: F.col });
 
   h +=
-    '<label class="field"><span>Nombre del servicio o factura</span>' +
+    '<label class="field"><span>' +
+    TH("sub.name") +
+    "</span>" +
     '<input id="f-subname" value="' +
     esc(F.name) +
-    '" maxlength="40" placeholder="ej. Netflix, Luz, Internet">' +
+    '" maxlength="40" placeholder="' +
+    TH("sub.namePlaceholder") +
+    '">' +
     "</label>";
 
   h +=
     '<div class="row">' +
-    '<label class="field" style="flex:2"><span>Valor recurrente</span>' +
+    '<label class="field" style="flex:2"><span>' +
+    TH("sub.recurringAmount") +
+    "</span>" +
     '<input id="f-subamt" inputmode="decimal" autocomplete="off" value="' +
     esc(F.amount != null ? F.amount : "") +
     '" placeholder="0.00"></label>' +
-    '<div class="field" style="flex:1"><span>Moneda</span>' +
+    '<div class="field" style="flex:1"><span>' +
+    TH("common.currency") +
+    "</span>" +
     '<button class="fieldbtn" id="f-subcur" data-act="pick-subcur"><span>' +
     esc(F.cur) +
     "</span>" +
@@ -257,12 +265,13 @@ function subForm(id) {
     "</button></div></div>";
 
   h +=
-    '<div class="field"><span>Frecuencia de cobro</span>' +
-    '<div class="chips" style="margin-top:4px">' +
+    '<div class="field"><span>' +
+    TH("sub.frequency") +
+    '</span><div class="chips" style="margin-top:4px">' +
     [
-      ["month", "Mensual"],
-      ["year", "Anual"],
-      ["week", "Semanal"],
+      ["month", T("sub.monthly")],
+      ["year", T("sub.yearly")],
+      ["week", T("sub.weekly")],
     ]
       .map(
         ([p, label]) =>
@@ -271,21 +280,29 @@ function subForm(id) {
           '" data-act="sub-set-period" data-v="' +
           p +
           '">' +
-          label +
+          esc(label) +
           "</button>"
       )
       .join("") +
     "</div></div>";
 
   h +=
-    '<div class="field"><span>Próxima fecha de cobro</span>' +
-    dateField("f-subdate", F.nextDue, { label: "Próxima fecha de cobro" }) +
+    '<div class="field"><span>' +
+    TH("sub.nextPayment") +
+    "</span>" +
+    dateField("f-subdate", F.nextDue, { label: T("sub.nextPayment") }) +
     "</div>";
 
-  h += '<div class="lbl">Cuenta de cobro habitual</div>' + accChips("f-acc", F.account, null, accChoices(F.account));
+  h +=
+    '<div class="lbl">' +
+    TH("sub.chargeAccount") +
+    "</div>" +
+    accChips("f-acc", F.account, null, accChoices(F.account));
 
   h +=
-    '<div class="lbl">Categoría del gasto</div>' +
+    '<div class="lbl">' +
+    TH("sub.category") +
+    "</div>" +
     '<div class="chips" style="margin-top:4px;flex-wrap:wrap;max-height:160px;overflow-y:auto">' +
     outCats()
       .map(
@@ -304,26 +321,30 @@ function subForm(id) {
     "</div>";
 
   h +=
-    '<label class="field" style="margin-top:12px"><span>Nota opcional</span>' +
+    '<label class="field" style="margin-top:12px"><span>' +
+    TH("common.note") +
+    "</span>" +
     '<input id="f-subnote" value="' +
     esc(F.note) +
-    '" maxlength="50" placeholder="ej. Plan familiar, referencia #"></label>';
+    '" maxlength="50" placeholder="' +
+    TH("sub.notePlaceholder") +
+    '"></label>';
 
   h +=
     '<div style="background:var(--secondary-container);color:var(--on-secondary-container);padding:10px 14px;border-radius:12px;font-size:0.8rem;margin:16px 0">' +
-    "🛡️ <b>Protección histórica:</b> Si modificas el valor aquí, solo se aplicará a los próximos cobros. Los pagos registrados anteriormente en tu historial conservarán su valor original." +
+    TH("sub.protectNotice") +
     "</div>";
 
   h +=
     '<div class="gap"></div><button class="btn" data-act="sub-save">' +
-    (id ? "Guardar cambios" : "Crear suscripción") +
+    (id ? TH("common.saveChanges") : TH("sub.new")) +
     "</button>";
 
   if (id) {
-    h += '<div class="gap"></div><button class="btn danger" data-act="sub-del">' + "Eliminar suscripción" + "</button>";
+    h += '<div class="gap"></div><button class="btn danger" data-act="sub-del">' + TH("sub.delete") + "</button>";
   }
 
-  openSheet(id ? "Editar suscripción" : "Nueva suscripción", h);
+  openSheet(id ? T("sub.edit") : T("sub.new"), h);
 }
 function saveSub() {
   const name = ($("#f-subname") ? $("#f-subname").value.trim() : "") || F.name;
@@ -337,7 +358,7 @@ function saveSub() {
     return;
   }
   if (amt == null || amt < 0) {
-    snack("Escribe un monto válido");
+    snack(T("common.enterAmount"));
     return;
   }
 
@@ -367,12 +388,12 @@ function saveSub() {
   closeSheet();
   commit();
   render();
-  snack(F.id ? "Suscripción actualizada" : "Suscripción creada");
+  snack(F.id ? T("sub.savedMsg") : T("sub.createdMsg"));
 }
 function deleteSub() {
   const subId = F.id;
   closeSheet();
-  withUndo("Suscripción eliminada (pagos anteriores conservados)", () => {
+  withUndo(T("sub.deletedMsg"), () => {
     S.subs = (S.subs || []).filter(x => x.id !== subId);
   });
   render();

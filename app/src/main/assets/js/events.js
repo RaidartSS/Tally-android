@@ -178,7 +178,7 @@ document.addEventListener("click", ev => {
           closeSheet();
           subDetails(v);
           render();
-          snack(s.paused ? "Suscripción pausada" : "Suscripción reactivada");
+          snack(s.paused ? T("sub.pausedMsg") : T("sub.resumedMsg"));
         }
       }
       break;
