@@ -152,19 +152,15 @@ document.addEventListener("click", ev => {
       break;
     case "sub-cat":
       F.cat = v;
-      [...document.querySelectorAll('[data-act="sub-cat"]')].forEach(b => b.classList.toggle("on", b.dataset.v === v));
+      setPressed("sub-cat", v);
       break;
     case "sub-set-period":
       F.period = v;
-      [...document.querySelectorAll('[data-act="sub-set-period"]')].forEach(b =>
-        b.classList.toggle("on", b.dataset.v === v)
-      );
+      setPressed("sub-set-period", v);
       break;
     case "sub-set-var":
       F.variable = v === "1";
-      [...document.querySelectorAll('[data-act="sub-set-var"]')].forEach(b =>
-        b.classList.toggle("on", b.dataset.v === v)
-      );
+      setPressed("sub-set-var", v);
       break;
     case "subpay-confirm":
       confirmPaySub();

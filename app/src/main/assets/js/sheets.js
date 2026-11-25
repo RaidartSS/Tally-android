@@ -368,14 +368,14 @@ function subForm(id) {
     '<div class="field"><span>' +
     TH("sub.amountType") +
     '</span><div class="chips" style="margin-top:4px">' +
-    '<button class="chip' +
-    (!F.variable ? " on" : "") +
-    '" data-act="sub-set-var" data-v="0">' +
+    '<button class="chip" data-act="sub-set-var" data-v="0" aria-pressed="' +
+    (!F.variable ? "true" : "false") +
+    '">' +
     TH("sub.fixedType") +
     "</button>" +
-    '<button class="chip' +
-    (F.variable ? " on" : "") +
-    '" data-act="sub-set-var" data-v="1">' +
+    '<button class="chip" data-act="sub-set-var" data-v="1" aria-pressed="' +
+    (F.variable ? "true" : "false") +
+    '">' +
     TH("sub.variableType") +
     "</button></div>" +
     '<div class="hint" style="margin-top:4px;font-size:0.78rem">' +
@@ -393,10 +393,10 @@ function subForm(id) {
     ]
       .map(
         ([p, label]) =>
-          '<button class="chip' +
-          (F.period === p ? " on" : "") +
-          '" data-act="sub-set-period" data-v="' +
+          '<button class="chip" data-act="sub-set-period" data-v="' +
           p +
+          '" aria-pressed="' +
+          (F.period === p ? "true" : "false") +
           '">' +
           esc(label) +
           "</button>"
@@ -425,10 +425,10 @@ function subForm(id) {
     outCats()
       .map(
         c =>
-          '<button class="chip' +
-          (c.id === F.cat ? " on" : "") +
-          '" data-act="sub-cat" data-v="' +
+          '<button class="chip lead" data-act="sub-cat" data-v="' +
           esc(c.id) +
+          '" aria-pressed="' +
+          (c.id === F.cat ? "true" : "false") +
           '">' +
           emblem(c, "sm") +
           "<span>" +
