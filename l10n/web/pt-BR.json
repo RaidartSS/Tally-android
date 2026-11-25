@@ -1024,6 +1024,14 @@
     "historyNone": "Nenhum pagamento registrado para esta assinatura ainda.",
     "historyNotice": "Cada pagamento mantém o valor exato pago em sua data histórica.",
     "noAccount": "Sem conta",
-    "view": "Ver"
+    "view": "Ver",
+    "amountType": "Tipo de valor",
+    "fixedType": "Fixo",
+    "variableType": "Variável (perguntar ao pagar)",
+    "variableHint": "Ideal para contas de consumo como luz, água ou gás cujo valor muda todo mês.",
+    "variableTag": "Variável",
+    "estimatedAmount": "Valor estimado / último",
+    "payVariable": "Registrar pagamento…",
+    "payVariableHint": "A estimativa será atualizada para o próximo mês; pagamentos anteriores nunca mudam."
   }
 }

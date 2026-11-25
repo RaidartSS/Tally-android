@@ -1024,6 +1024,14 @@
     "historyNone": "Aucun paiement enregistré pour cet abonnement pour le moment.",
     "historyNotice": "Chaque paiement conserve le montant exact payé à sa date historique.",
     "noAccount": "Aucun compte",
-    "view": "Voir"
+    "view": "Voir",
+    "amountType": "Type de montant",
+    "fixedType": "Fixe",
+    "variableType": "Variable (demander au paiement)",
+    "variableHint": "Idéal pour les factures (électricité, eau, gaz) dont le montant varie chaque mois.",
+    "variableTag": "Variable",
+    "estimatedAmount": "Montant estimé / dernier",
+    "payVariable": "Enregistrer le paiement…",
+    "payVariableHint": "L'estimation sera mise à jour pour la prochaine fois ; les paiements passés ne changent jamais."
   }
 }

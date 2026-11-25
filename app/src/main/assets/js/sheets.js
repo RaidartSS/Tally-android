@@ -117,8 +117,11 @@ function subDetails(id) {
     "</div></div></div>";
 
   h += '<div class="sumcard soft" style="margin-bottom:16px">';
-  h += '<div class="t">' + TH("sub.currentAmount") + "</div>";
-  h += '<div class="big">' + esc(money(s.amount, cur)) + "</div>";
+  h += '<div class="t">' + (s.variable ? TH("sub.estimatedAmount") : TH("sub.currentAmount")) + "</div>";
+  h +=
+    '<div class="big">' +
+    (s.variable && s.amount <= 0 ? TH("sub.variableTag") : (s.variable ? "~" : "") + esc(money(s.amount, cur))) +
+    "</div>";
   h +=
     '<div style="font-size:0.85rem;margin-top:6px">' +
     TH("sub.nextDueLabel", { date: s.nextDue }) +
@@ -132,7 +135,7 @@ function subDetails(id) {
     s.id +
     '" style="margin-bottom:8px">' +
     ic("check") +
-    TH("sub.payAmount", { amount: money(s.amount, cur) }) +
+    (s.variable ? TH("sub.payVariable") : TH("sub.payAmount", { amount: money(s.amount, cur) })) +
     "</button>";
 
   h += '<div style="display:flex;gap:8px;margin-bottom:16px">';
@@ -187,6 +190,7 @@ function subDetails(id) {
 function paySub(id) {
   const s = (S.subs || []).find(x => x.id === id);
   if (!s) return;
+  if (s.variable) return paySubForm(id);
   const date = today();
   const a = acc(s.account);
   const cur = a ? a.currency : s.currency || S.settings.cur;
@@ -206,6 +210,101 @@ function paySub(id) {
   withUndo(T("sub.paidMsg", { name: s.name, amount: money(s.amount, cur) }), () => {
     S.txns.push(t);
     s.nextDue = nextPeriodDate(s.nextDue || date, s.period || "month");
+  });
+  closeSheet();
+  commit();
+  render();
+}
+function paySubForm(id) {
+  const s = (S.subs || []).find(x => x.id === id);
+  if (!s) return;
+  const defAcc = s.account || (S.accounts[0] ? S.accounts[0].id : "");
+  const a = acc(defAcc);
+  const cur = a ? a.currency : s.currency || S.settings.cur;
+  F = { kind: "subpay", id: s.id, account: defAcc, date: today() };
+
+  let h =
+    '<label class="field"><span>' +
+    TH("common.amount") +
+    ' (<span id="amt-cur">' +
+    esc(cur) +
+    "</span>)</span>" +
+    '<input id="f-subpay-amt" inputmode="decimal" autocomplete="off" value="' +
+    (s.amount > 0 ? esc(s.amount) : "") +
+    '" placeholder="0.00"></label>';
+
+  h +=
+    '<div class="field"><span>' +
+    TH("common.date") +
+    "</span>" +
+    dateField("f-subpay-date", F.date, { label: T("common.date") }) +
+    "</div>";
+
+  h +=
+    '<div class="lbl">' +
+    TH("sub.chargeAccount") +
+    "</div>" +
+    accChips("f-acc", F.account, null, accChoices(F.account));
+
+  h +=
+    '<label class="field" style="margin-top:12px"><span>' +
+    TH("common.note") +
+    "</span>" +
+    '<input id="f-subpay-note" value="' +
+    esc(s.note || "") +
+    '" maxlength="50" placeholder="' +
+    TH("sub.notePlaceholder") +
+    '"></label>';
+
+  h += '<p class="hint" style="margin:10px 0 4px;font-size:0.8rem">' + TH("sub.payVariableHint") + "</p>";
+
+  h +=
+    '<div class="gap"></div><button class="btn" data-act="subpay-confirm">' +
+    ic("check") +
+    TH("sub.payAction") +
+    "</button>";
+
+  openSheet(s.name, h);
+  setTimeout(() => {
+    const el = $("#f-subpay-amt");
+    if (el) {
+      el.focus();
+      el.select();
+    }
+  }, 60);
+}
+function confirmPaySub() {
+  const s = (S.subs || []).find(x => x.id === F.id);
+  if (!s) return;
+  const rawAmt = $("#f-subpay-amt") ? $("#f-subpay-amt").value.trim() : "";
+  const amt = rawAmt ? evalAmt(rawAmt) : null;
+  if (amt == null || amt <= 0) {
+    snack(T("common.enterAmount"));
+    return;
+  }
+  const date = ($("#f-subpay-date") ? $("#f-subpay-date").dataset.v : "") || today();
+  const note = $("#f-subpay-note") ? $("#f-subpay-note").value.trim() : "";
+  const account = F.account || (S.accounts[0] ? S.accounts[0].id : "");
+  const a = acc(account);
+  const cur = a ? a.currency : s.currency || S.settings.cur;
+  const finalAmt = rnd(amt);
+  const t = {
+    id: newId(),
+    ts: Date.now(),
+    date,
+    type: "expense",
+    amount: finalAmt,
+    account,
+    cat: s.cat || "bills",
+    payee: s.name,
+    note,
+    subId: s.id,
+  };
+
+  withUndo(T("sub.paidMsg", { name: s.name, amount: money(finalAmt, cur) }), () => {
+    S.txns.push(t);
+    s.nextDue = nextPeriodDate(s.nextDue || date, s.period || "month");
+    if (s.variable) s.amount = finalAmt;
   });
   closeSheet();
   commit();
@@ -232,6 +331,7 @@ function subForm(id) {
     e: s ? s.e || "" : "",
     col: s ? s.c || "#4a88c7" : "#4a88c7",
     paused: s ? s.paused : false,
+    variable: s ? !!s.variable : false,
   };
 
   let h = emblemEditor({ i: F.i, e: F.e, c: F.col });
@@ -263,6 +363,24 @@ function subForm(id) {
     "</span>" +
     ic("down") +
     "</button></div></div>";
+
+  h +=
+    '<div class="field"><span>' +
+    TH("sub.amountType") +
+    '</span><div class="chips" style="margin-top:4px">' +
+    '<button class="chip' +
+    (!F.variable ? " on" : "") +
+    '" data-act="sub-set-var" data-v="0">' +
+    TH("sub.fixedType") +
+    "</button>" +
+    '<button class="chip' +
+    (F.variable ? " on" : "") +
+    '" data-act="sub-set-var" data-v="1">' +
+    TH("sub.variableType") +
+    "</button></div>" +
+    '<div class="hint" style="margin-top:4px;font-size:0.78rem">' +
+    TH("sub.variableHint") +
+    "</div></div>";
 
   h +=
     '<div class="field"><span>' +
@@ -375,6 +493,7 @@ function saveSub() {
     e: F.e,
     c: F.col,
     paused: F.paused || false,
+    variable: !!F.variable,
   };
 
   S.subs = S.subs || [];

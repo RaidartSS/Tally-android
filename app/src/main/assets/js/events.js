@@ -160,6 +160,15 @@ document.addEventListener("click", ev => {
         b.classList.toggle("on", b.dataset.v === v)
       );
       break;
+    case "sub-set-var":
+      F.variable = v === "1";
+      [...document.querySelectorAll('[data-act="sub-set-var"]')].forEach(b =>
+        b.classList.toggle("on", b.dataset.v === v)
+      );
+      break;
+    case "subpay-confirm":
+      confirmPaySub();
+      break;
     case "pick-subcur":
       curPicker(F.cur, c => {
         if (F && F.kind === "subf") {

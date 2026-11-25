@@ -1007,6 +1007,14 @@
     "historyNone": "No payments recorded for this subscription yet.",
     "historyNotice": "Each payment keeps the exact amount paid on its historical date.",
     "noAccount": "No account",
-    "view": "View"
+    "view": "View",
+    "amountType": "Amount type",
+    "fixedType": "Fixed",
+    "variableType": "Variable (ask on pay)",
+    "variableHint": "Ideal for utilities like electricity, water or gas where the bill changes each month.",
+    "variableTag": "Variable",
+    "estimatedAmount": "Estimated / last amount",
+    "payVariable": "Record payment…",
+    "payVariableHint": "The estimate will update to this amount for next time; past payments in your history never change."
   }
 }

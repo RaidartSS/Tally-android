@@ -990,6 +990,14 @@
     "historyNone": "此订阅尚无付款记录。",
     "historyNotice": "每笔付款均保留其历史日期的确切支付金额。",
     "noAccount": "无账户",
-    "view": "查看"
+    "view": "查看",
+    "amountType": "金额类型",
+    "fixedType": "固定",
+    "variableType": "浮动（付款时输入）",
+    "variableHint": "适用于水、电、燃气等每月账单金额会变化的费用。",
+    "variableTag": "浮动",
+    "estimatedAmount": "预估 / 上次金额",
+    "payVariable": "记录付款…",
+    "payVariableHint": "下次预估金额将更新为此数值；历史付款记录绝不会改变。"
   }
 }

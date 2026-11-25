@@ -391,6 +391,7 @@ function migrate(o) {
       period: ["week", "month", "year"].includes(x.period) ? x.period : "month",
       nextDue: isDay(x.nextDue) ? day(x.nextDue) : today(),
       paused: !!x.paused,
+      variable: !!x.variable,
       note: str(x.note),
       i: own(ICONS, x.i) ? x.i : "calendar_month",
       e: str(x.e),

@@ -990,6 +990,14 @@
     "historyNone": "Belum ada pembayaran yang dicatat untuk langganan ini.",
     "historyNotice": "Setiap pembayaran menyimpan jumlah pasti yang dibayarkan pada tanggal historisnya.",
     "noAccount": "Tanpa rekening",
-    "view": "Lihat"
+    "view": "Lihat",
+    "amountType": "Jenis jumlah",
+    "fixedType": "Tetap",
+    "variableType": "Variabel (tanya saat bayar)",
+    "variableHint": "Cocok untuk tagihan seperti listrik, air, atau gas yang jumlahnya berubah setiap bulan.",
+    "variableTag": "Variabel",
+    "estimatedAmount": "Perkiraan / jumlah terakhir",
+    "payVariable": "Catat pembayaran…",
+    "payVariableHint": "Perkiraan akan diperbarui untuk bulan depan; riwayat pembayaran sebelumnya tidak berubah."
   }
 }

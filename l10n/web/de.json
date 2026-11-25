@@ -1007,6 +1007,14 @@
     "historyNone": "Bisher keine Zahlungen für dieses Abo erfasst.",
     "historyNotice": "Jede Zahlung behält den genauen Betrag zum damaligen Datum.",
     "noAccount": "Kein Konto",
-    "view": "Ansehen"
+    "view": "Ansehen",
+    "amountType": "Betragstyp",
+    "fixedType": "Fest",
+    "variableType": "Variabel (bei Zahlung fragen)",
+    "variableHint": "Ideal für Nebenkosten wie Strom, Wasser oder Gas, deren Betrag monatlich schwankt.",
+    "variableTag": "Variabel",
+    "estimatedAmount": "Geschätzter / letzter Betrag",
+    "payVariable": "Zahlung erfassen…",
+    "payVariableHint": "Die Schätzung wird für das nächste Mal aktualisiert; frühere Zahlungen bleiben unverändert."
   }
 }

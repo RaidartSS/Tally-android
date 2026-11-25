@@ -1007,6 +1007,14 @@
     "historyNone": "Bu abonelik için henüz bir ödeme kaydedilmedi.",
     "historyNotice": "Her ödeme, geçmiş tarihindeki tam tutarı korur.",
     "noAccount": "Hesap yok",
-    "view": "Gör"
+    "view": "Gör",
+    "amountType": "Tutar türü",
+    "fixedType": "Sabit",
+    "variableType": "Değişken (öderken sor)",
+    "variableHint": "Tutarı her ay değişen elektrik, su veya doğalgaz gibi faturalar için idealdir.",
+    "variableTag": "Değişken",
+    "estimatedAmount": "Tahmini / son tutar",
+    "payVariable": "Ödeme kaydet…",
+    "payVariableHint": "Tahmin bir sonraki sefer için güncellenir; geçmiş ödemeleriniz asla değişmez."
   }
 }

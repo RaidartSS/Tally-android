@@ -776,7 +776,7 @@ function subRow(s) {
     subline +
     "</div></span>" +
     '<span class="a">' +
-    esc(money(s.amount, cur)) +
+    (s.variable && s.amount <= 0 ? TH("sub.variableTag") : (s.variable ? "~" : "") + esc(money(s.amount, cur))) +
     '<small><span class="st" style="font-size:0.75rem">' +
     esc(pText) +
     "</span></small></span>" +
@@ -825,8 +825,8 @@ function dueSubsAlert() {
     ic("calendar_month") +
     "<span><b>" +
     esc(s.name) +
-    "</b>: " +
-    esc(money(s.amount, cur)) +
+    "</b>" +
+    (s.variable && s.amount <= 0 ? "" : ": " + (s.variable ? "~" : "") + esc(money(s.amount, cur))) +
     " · " +
     esc(label) +
     esc(more) +
